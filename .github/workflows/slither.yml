@@ -29,8 +29,8 @@ jobs:
       - name: Install Foundry and Forge
         run: |
           curl -L https://foundry.paradigm.xyz | bash
+          $HOME/.foundry/bin/foundryup
           source $HOME/.foundry/env
-          foundryup
           forge --version
 
       - name: Install Slither
