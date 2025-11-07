@@ -18,13 +18,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 2. Clone the target contracts repo
+      # 2. Clone target contracts
       - name: Clone target contracts
         run: |
           git clone https://github.com/CodeHawks-Contests/2025-11-brivault.git contracts
           ls -R contracts
 
-      # 3. Install prerequisites: Python, pip, solc-select, Slither, Node.js, npm
+      # 3. Install prerequisites: Python, pip, Node.js, solc-select, Slither
       - name: Install prerequisites
         run: |
           sudo apt-get update
@@ -35,15 +35,14 @@ jobs:
           solc-select use 0.8.30
           solc --version
 
-      # 4. Install OpenZeppelin contracts
+      # 4. Install OpenZeppelin via npm
       - name: Install OpenZeppelin
         run: |
           cd contracts
           npm init -y
           npm install @openzeppelin/contracts
-          cd ..
 
-      # 5. Compile contracts with solc using include paths
+      # 5. Compile contracts with solc (resolve imports from node_modules)
       - name: Compile contracts
         run: |
           mkdir -p build
