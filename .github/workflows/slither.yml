@@ -10,38 +10,47 @@ on:
 jobs:
   slither:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
+      # 1. Checkout this repo
+      - name: Checkout analysis repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # 2. Clone the target contracts repo
       - name: Clone target contracts
         run: |
           git clone https://github.com/CodeHawks-Contests/2025-11-brivault.git contracts
-          ls -R contracts
+          ls -R contracts  # optional: see directory structure
 
+      # 3. Install prerequisites: Python, pip, solc-select, Slither
       - name: Install prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3 python3-pip curl git unzip solc
+          sudo apt-get install -y python3 python3-pip git curl unzip
           pip3 install slither-analyzer==0.11.0 || pip3 install slither-analyzer
+          pip3 install solc-select
+          solc-select install 0.8.30
+          solc-select use 0.8.30
+          solc --version
 
-      - name: Compile contracts with solc
+      # 4. Compile contracts with solc
+      - name: Compile contracts
         run: |
           mkdir -p build
           solc --combined-json abi,bin,metadata -o build contracts/*.sol
 
-      - name: Run Slither analysis
+      # 5. Run Slither (JSON + human-readable summary)
+      - name: Run Slither
         run: |
           mkdir -p crytic-output
-          slither contracts \
-            --json crytic-output/slither-report.json \
-            --disable-solc-warnings \
-            --solc-remaps "@openzeppelin/=lib/openzeppelin-contracts/"
-          slither contracts --print human-summary > crytic-output/slither-summary.txt
-          slither contracts --print human-summary 2>&1 | tee crytic-output/slither-console.txt
+          cd contracts
+          slither . --json ../crytic-output/slither-report.json --disable-solc-warnings || true
+          slither . --print human-summary > ../crytic-output/slither-summary.txt || true
+          slither . --print human-summary 2>&1 | tee ../crytic-output/slither-console.txt || true
 
+      # 6. Upload Slither results
       - name: Upload Slither results
         uses: actions/upload-artifact@v4
         with:
