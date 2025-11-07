@@ -19,26 +19,18 @@ jobs:
       - name: Clone target contracts
         run: |
           git clone https://github.com/CodeHawks-Contests/2025-11-brivault.git contracts
-          ls -R contracts  # optional: see directory structure
+          ls -R contracts
 
       - name: Install prerequisites
         run: |
           sudo apt-get update
           sudo apt-get install -y python3 python3-pip curl git unzip
 
-      - name: Install Foundry
+      - name: Install Foundry and Forge
         run: |
           curl -L https://foundry.paradigm.xyz | bash
-          export PATH="$HOME/.foundry/bin:$PATH"
           source $HOME/.foundry/env
-          source /home/runner/.bashrc
           foundryup
-          export PATH="$HOME/.foundry/bin:$PATH"
-          forge --version
-
-      - name: Verify forge version
-        run: |
-          echo "forge version:"
           forge --version
 
       - name: Install Slither
@@ -46,7 +38,7 @@ jobs:
           pip3 install slither-analyzer==0.11.0 || pip3 install slither-analyzer
           slither --version || true
 
-      - name: Install dependencies (Foundry)
+      - name: Install Foundry dependencies
         run: |
           cd contracts
           forge install || true
