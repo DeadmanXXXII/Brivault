@@ -27,13 +27,12 @@ jobs:
           sudo apt-get install -y python3 python3-pip curl git unzip
 
       - name: Install Foundry
-  run: |
-    curl -L https://foundry.paradigm.xyz | bash
-    export PATH="$HOME/.foundry/bin:$PATH"
-    foundryup
-    export PATH="$HOME/.foundry/bin:$PATH"
-    forge --version
-    
+        run: |
+          curl -L https://foundry.paradigm.xyz | bash
+          export PATH="$HOME/.foundry/bin:$PATH"
+          foundryup
+          export PATH="$HOME/.foundry/bin:$PATH"
+          forge --version
 
       - name: Verify forge version
         run: |
