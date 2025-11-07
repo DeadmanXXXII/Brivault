@@ -26,12 +26,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y python3 python3-pip curl git unzip
 
-      - name: Install Foundry and Forge
+      - name: Install Foundry
         run: |
           curl -L https://foundry.paradigm.xyz | bash
-          $HOME/.foundry/bin/foundryup
-          source $HOME/.foundry/env
-          forge --version
+          $HOME/.foundry/bin/foundryup --yes
+          export PATH="$HOME/.foundry/bin:$PATH"
+          $HOME/.foundry/bin/forge --version
 
       - name: Install Slither
         run: |
