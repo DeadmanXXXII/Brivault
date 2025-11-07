@@ -39,7 +39,7 @@ jobs:
       - name: Compile contracts
         run: |
           mkdir -p build
-          solc --combined-json abi,bin,metadata -o build contracts/*.sol
+          solc --combined-json abi,bin,metadata -o build contracts/src/*.sol
 
       # 5. Run Slither (JSON + human-readable summary)
       - name: Run Slither
