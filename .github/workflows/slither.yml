@@ -1,31 +1,22 @@
-name: Slither static analysis on Brivault
-
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
-
 jobs:
   slither:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout this repo
+      # 1. Checkout this repo (unchanged)
       - name: Checkout analysis repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. Clone target contracts
+      # 2. Clone target contracts (unchanged)
       - name: Clone target contracts
         run: |
           git clone https://github.com/CodeHawks-Contests/2025-11-brivault.git contracts
           ls -R contracts
 
-      # 3. Install prerequisites: Python, pip, Node.js, solc-select, Slither
-      - name: Install prerequisites
+      # 3. Install prerequisites: Python, pip, solc-select, Slither, and FOUNDRY (UPDATED)
+      - name: Install Python/Slither Prerequisites
         run: |
           sudo apt-get update
           sudo apt-get install -y python3 python3-pip git curl unzip nodejs npm
@@ -34,30 +25,34 @@ jobs:
           solc-select install 0.8.30
           solc-select use 0.8.30
           solc --version
+          
+      # NEW STEP: Install Foundry using the official Action
+      - name: Install Foundry Toolchain (Forge, Cast, Anvil)
+        uses: foundry-rs/foundry-toolchain@v1 # Use the official Action
+        with:
+          version: 'stable' # or a specific version like 'v1.3.6'
 
-      # 4. Install OpenZeppelin via npm
-      - name: Install OpenZeppelin
+      # 4. Install dependencies via Forge (UPDATED to use forge directly)
+      - name: Install dependencies via Forge (Matches project's expected structure)
         run: |
           cd contracts
-          npm init -y
-          npm install @openzeppelin/contracts
+          # Forge is now available globally in PATH, so no need for ~/.foundry/bin/
+          forge install
+          ls -R lib # Confirm structure: lib/openzeppelin-contracts/contracts/access/Ownable.sol
 
-      # 5. Compile contracts with solc (resolve imports from node_modules)
-      - name: Compile contracts
-        run: |
-          mkdir -p build
-          solc --base-path contracts --include-path contracts/node_modules --combined-json abi,bin,metadata -o build contracts/src/*.sol
-
-      # 6. Run Slither (JSON + human-readable summary)
+      # 5. REMOVED/SKIPPED: Manual solc compilation 
+      
+      # 6. Run Slither (JSON + human-readable summary) (UPDATED to use slither globally)
       - name: Run Slither
         run: |
           mkdir -p crytic-output
           cd contracts
+          # slither is installed via pip3 and should be available
           slither . --json ../crytic-output/slither-report.json --disable-solc-warnings || true
           slither . --print human-summary > ../crytic-output/slither-summary.txt || true
           slither . --print human-summary 2>&1 | tee ../crytic-output/slither-console.txt || true
-
-      # 7. Upload Slither results
+          
+      # 7. Upload Slither results (unchanged)
       - name: Upload Slither results
         uses: actions/upload-artifact@v4
         with:
