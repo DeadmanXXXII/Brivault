@@ -31,6 +31,7 @@ jobs:
           curl -L https://foundry.paradigm.xyz | bash
           export PATH="$HOME/.foundry/bin:$PATH"
           source $HOME/.foundry/env
+          source /home/runner/.bashrc
           foundryup
           export PATH="$HOME/.foundry/bin:$PATH"
           forge --version
