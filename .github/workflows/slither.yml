@@ -1,0 +1,67 @@
+name: Slither static analysis on Brivault
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  slither:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout analysis repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clone target contracts
+        run: |
+          git clone https://github.com/CodeHawks-Contests/2025-11-brivault.git contracts
+          ls -R contracts  # optional: see directory structure
+
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip curl git unzip
+
+      - name: Install Foundry (forge, cast, anvil)
+        run: |
+          curl -L https://foundry.paradigm.xyz | bash
+          source ~/.bashrc || true
+          foundryup
+
+      - name: Verify forge version
+        run: |
+          echo "forge version:"
+          forge --version
+
+      - name: Install Slither
+        run: |
+          pip3 install slither-analyzer==0.11.0 || pip3 install slither-analyzer
+          slither --version || true
+
+      - name: Install dependencies (Foundry)
+        run: |
+          cd contracts
+          forge install || true
+
+      - name: Build project with forge
+        run: |
+          cd contracts
+          forge build --no-default-lib
+
+      - name: Run Slither (JSON + human summary)
+        run: |
+          mkdir -p crytic-output
+          cd contracts
+          slither . --json ../crytic-output/slither-report.json --disable-solc-warnings || true
+          slither . --print human-summary > ../crytic-output/slither-summary.txt || true
+          slither . --print human-summary 2>&1 | tee ../crytic-output/slither-console.txt || true
+
+      - name: Upload Slither results
+        uses: actions/upload-artifact@v4
+        with:
+          name: slither-report
+          path: crytic-output
