@@ -22,26 +22,34 @@ jobs:
       - name: Clone target contracts
         run: |
           git clone https://github.com/CodeHawks-Contests/2025-11-brivault.git contracts
-          ls -R contracts  # optional: see directory structure
+          ls -R contracts
 
-      # 3. Install prerequisites: Python, pip, solc-select, Slither
+      # 3. Install prerequisites: Python, pip, solc-select, Slither, Node.js, npm
       - name: Install prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y python3 python3-pip git curl unzip
+          sudo apt-get install -y python3 python3-pip git curl unzip nodejs npm
           pip3 install slither-analyzer==0.11.0 || pip3 install slither-analyzer
           pip3 install solc-select
           solc-select install 0.8.30
           solc-select use 0.8.30
           solc --version
 
-      # 4. Compile contracts with solc
+      # 4. Install OpenZeppelin contracts
+      - name: Install OpenZeppelin
+        run: |
+          cd contracts
+          npm init -y
+          npm install @openzeppelin/contracts
+          cd ..
+
+      # 5. Compile contracts with solc using include paths
       - name: Compile contracts
         run: |
           mkdir -p build
-          solc --combined-json abi,bin,metadata -o build contracts/src/*.sol
+          solc --base-path contracts --include-path contracts/node_modules --combined-json abi,bin,metadata -o build contracts/src/*.sol
 
-      # 5. Run Slither (JSON + human-readable summary)
+      # 6. Run Slither (JSON + human-readable summary)
       - name: Run Slither
         run: |
           mkdir -p crytic-output
@@ -50,7 +58,7 @@ jobs:
           slither . --print human-summary > ../crytic-output/slither-summary.txt || true
           slither . --print human-summary 2>&1 | tee ../crytic-output/slither-console.txt || true
 
-      # 6. Upload Slither results
+      # 7. Upload Slither results
       - name: Upload Slither results
         uses: actions/upload-artifact@v4
         with:
